@@ -10,14 +10,14 @@
 ## 5 1975-06-23  122006 PRECIP   1.1
 ## 6 1975-06-24  122006 PRECIP   1.9
 # Where "Station" is a unique ID for the met station and "Sensor" refers to the type of measurment (PRECIP, TMAX, TMIN, FLOW)
-# Units: Temperature = Celsius, Precip = in/day, Streamflow = cfs
+# Units: Temperature = Celsius, Precip = mm/day, Streamflow = cfs
 # Reference: https://pubs.usgs.gov/tm/6b7/
 
 # Required Libraries
 library(dplyr)
 library(tidyr)
 
-# Generic Functions
+# Generic Functions =====================================================================
 CreateDate <- function(Data_Table) {
   Data_Table %>% 
     mutate(Date = paste(Year,Month,Day,sep="-")) %>% 
@@ -42,8 +42,11 @@ SpreadVariables <- function(Data_Table, SS) {
   return(Variable)
 }
 
-# Data File Function
+# Data File Function =====================================================================
 Write_DataFile <- function(df, ff, date_start, date_end) {
+  
+  # df is the input dataframe
+  # ff is the path to the output file
   
   # Individual Tables for Different Sensors
   TMax <- SpreadVariables(df, "TMAX")
@@ -78,7 +81,7 @@ Write_DataFile <- function(df, ff, date_start, date_end) {
   cat(paste("tmin", ntmin), file = ff, append = TRUE, sep = "\n")
   cat(paste("precip", nprecip), file = ff, append = TRUE, sep = "\n")
   cat(paste("runoff", nrunoff), file = ff, append = TRUE, sep = "\n")
-  cat("// Units: Temperature = Celsius, Precipitation = in/day, Runoff = cfs", 
+  cat("// Units: Temperature = Celsius, Precipitation = mm/day, Runoff = cfs", 
       file = ff, append = TRUE, sep = "\n")
   cat("##############################################################################################", 
       file = ff, append = TRUE, sep = "\n")
