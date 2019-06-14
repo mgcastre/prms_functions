@@ -23,7 +23,7 @@ CreateDate <- function(Data_Table) {
     mutate(Date = paste(Year,Month,Day,sep="-")) %>% 
     mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>% 
     mutate(Year = as.integer(Year), Month = as.integer(Month), Day = as.integer(Day)) %>% 
-    select(Date, everything()) 
+    dplyr::select(Date, everything()) 
 }
 
 SeparateDate <- function(Data_Table) {
@@ -35,7 +35,7 @@ SeparateDate <- function(Data_Table) {
 SpreadVariables <- function(Data_Table, SS) {
   Variable <- Data_Table %>% 
     filter(Sensor == SS) %>% 
-    select(-Sensor) %>% 
+    dplyr::select(-Sensor) %>% 
     mutate(Date = as.Date(Date)) %>% 
     distinct() %>%
     spread(Station, Value)
@@ -65,7 +65,7 @@ Write_DataFile <- function(df, ff, date_start, date_end, u_array) {
     left_join(TMin, by = 'Date') %>% 
     left_join(Precipitation, by = 'Date') %>% 
     left_join(Runoff, by = 'Date') %>% 
-    select(-Date)
+    dplyr::select(-Date)
   
   # Replacing NAs with -999
   DataFile[is.na(DataFile)] <- -999
