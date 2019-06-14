@@ -39,7 +39,7 @@ library(lubridate)
 library(readxl)
 library(broom)
 
-# Generic Functions
+# Generic Functions ================================================================================
 
 CreateDate <- function(Data_Table) {
   Data_Table %>% 
@@ -122,7 +122,7 @@ DependentVariables <- function(dfdata, dfstations){
   return(DV)
 }
 
-# Linear Regression Functions
+# Linear Regression Functions =========================================================================
 
 Monthly_MLR <- function(Data1, Data2, SS){
   # Data1 is a table with daily values. It will be transformed to monthly values
@@ -203,7 +203,7 @@ ggplotScatterMonthly <- function(TibbleTable) {
   return(Plot)
 }
 
-# Functions to Write Parameter File
+# Functions to Write Parameter File ==================================================================
 
 write.parameter <- function(parameter_name, num_dim, dimension_name, type, values, filename) {
   # This function is useful for writing parameters with only one dimension number
@@ -225,13 +225,14 @@ excel.parameters <- function(tt, ff){
 }
 
 Write_Parameters_Climate <- function(dfdata, dfstations, parameters_excel, filename){
-  # Calculating Parameters 
-  #-----------------------
+  
+  # Calculating Parameters
+  
   # Mean Monthly Climate Parameters
   psta_month_ppt <- MonthlyMeanValues(dfdata, "PRECIP")
   tsta_month_max <- MonthlyMeanValues(dfdata, "TMAX")
   tsta_month_min <- MonthlyMeanValues(dfdata, "TMIN")
-  
+
   # Transformation Parameters for Dependent & Independent Variables
   ## Independent Variables
   IV <- IndependentVariables(dfdata, dfstations)
@@ -247,16 +248,13 @@ Write_Parameters_Climate <- function(dfdata, dfstations, parameters_excel, filen
   ## TMIN
   model_tmin <- Monthly_MLR(dfdata, dfstations, "TMIN")
   min_lapse <- ModelCoeffs(model_tmin)
-  
   # Read Other Required Parameters from Excel
-  #------------------------------------------
   Par_one <- read_excel(parameters_excel, sheet = "one", col_names = FALSE)
   Par_nrain <- read_excel(parameters_excel, sheet = "nrain", col_names = FALSE)
   Par_ntemp <- read_excel(parameters_excel, sheet = "ntemp", col_names = FALSE)
   Par_nmonths <- read_excel(parameters_excel, sheet = "nmonths", col_names = FALSE)
   
   # Writing Parameter File 
-  #-----------------------
   
   ## Opening File
   cat("// PRMS Parameter File Part II: Climate Distribution Module", file = filename, sep = "\n")
