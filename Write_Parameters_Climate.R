@@ -61,6 +61,18 @@ SelectVariable <- function(df, ss) {
     SeparateDate()
 }
 
+SelectStations <- function(dfdata, dfstations, ss){
+  # Function to select all the stations from a given sensor
+  Out_Stations <- dfdata %>% 
+    filter(Sensor == ss) %>% 
+    merge(dfstations, by = "Station") %>% 
+    dplyr::select(Station, Name, Latitude, Longitude, Elevation) %>% 
+    unique() %>% arrange(Station)
+  return(Out_Stations)
+}
+
+# Summary Functions ================================================================================
+
 MonthlyMeanValues <- function(df, sensor) {
   # Calculates monthly average measurement from the specified sensor for all stations
   # Returns a table of stations and months with their respective mean monthly value
@@ -160,6 +172,7 @@ Monthly_MLR <- function(Data1, Data2, SS){
   # Return Tibble
   return(TibbleTable)
 }
+# Plotting Functions ==================================================================================
 
 ggplotScatter <- function(TibbleTable) {
   require(ggplot2)
@@ -226,38 +239,51 @@ excel.parameters <- function(tt, ff){
 
 Write_Parameters_Climate <- function(dfdata, dfstations, parameters_excel, filename){
   
-  # Calculating Parameters
+  # Calculating Parameters --------------------------------------------------------
   
-  # Mean Monthly Climate Parameters
+  ## Rain Station Coordinates
+  nrain <- SelectStations(dfdata, dfstations, "PRECIP") %>% 
+    transmute(psta_elev = as.numeric(Elevation),
+              psta_x = as.numeric(Longitude),
+              psta_y = as.numeric(Latitude),
+              psta_freq_nuse = as.integer(1),
+              psta_nuse = as.integer(1))
+  
+  ## Temperature Station Coordinates
+  ntemp <- SelectStations(dfdata, dfstations, "TMAX") %>% 
+    transmute(tsta_elev = as.numeric(Elevation),
+              tsta_x = as.numeric(Longitude),
+              tsta_y = as.numeric(Latitude),
+              tsta_nuse = as.integer(1))
+  
+  ## Mean Monthly Climate Parameters
   psta_month_ppt <- MonthlyMeanValues(dfdata, "PRECIP")
   tsta_month_max <- MonthlyMeanValues(dfdata, "TMAX")
   tsta_month_min <- MonthlyMeanValues(dfdata, "TMIN")
 
-  # Transformation Parameters for Dependent & Independent Variables
-  ## Independent Variables
+  ## Transformation Parameters for Dependent & Independent Variables
   IV <- IndependentVariables(dfdata, dfstations)
   DV <- DependentVariables(dfdata, dfstations)
   
-  # Multiple Linear Regression Coefficients
-  ## Precipitation
+  ## Multiple Linear Regression Coefficients
+  ### Precipitation
   model_precip <- Monthly_MLR(dfdata, dfstations, "PRECIP")
   ppt_lapse <- ModelCoeffs(model_precip)
-  ## TMAX
+  ### TMAX
   model_tmax <- Monthly_MLR(dfdata, dfstations, "TMAX")
   max_lapse <- ModelCoeffs(model_tmax)
-  ## TMIN
+  ### TMIN
   model_tmin <- Monthly_MLR(dfdata, dfstations, "TMIN")
   min_lapse <- ModelCoeffs(model_tmin)
-  # Read Other Required Parameters from Excel
+  
+  ## Read Other Required Parameters from Excel
   Par_one <- read_excel(parameters_excel, sheet = "one", col_names = FALSE)
-  Par_nrain <- read_excel(parameters_excel, sheet = "nrain", col_names = FALSE)
-  Par_ntemp <- read_excel(parameters_excel, sheet = "ntemp", col_names = FALSE)
   Par_nmonths <- read_excel(parameters_excel, sheet = "nmonths", col_names = FALSE)
   
-  # Writing Parameter File 
+  # Writing Parameter File -----------------------------------------------------------
   
   ## Opening File
-  cat("// PRMS Parameter File Part II: Climate Distribution Module", file = filename, sep = "\n")
+  cat("// PRMS Parameter File Part: XYZ Climate Distribution Module", file = filename, sep = "\n")
   
   ## Writing Parameters with Dimension "one"
   excel.parameters(Par_one, filename)
@@ -275,10 +301,19 @@ Write_Parameters_Climate <- function(dfdata, dfstations, parameters_excel, filen
   write.parameter("tmin_div",1,"one",2,DV$tmin_div,filename)
   
   ## Writing Parameters with Dimension "nrain"
-  excel.parameters(Par_nrain, filename)
+  write.parameter("psta_elev",1,"nrain",2,nrain$psta_elev,filename)
+  write.parameter("psta_x",1,"nrain",2,nrain$psta_x,filename)
+  write.parameter("psta_y",1,"nrain",2,nrain$psta_y,filename)
+  write.parameter("psta_elev",1,"nrain",2,nrain$psta_elev,filename)
+  write.parameter("psta_freq_nuse",1,"nrain",1,nrain$psta_freq_nuse,filename)
+  write.parameter("psta_nuse",1,"nrain",1,nrain$psta_nuse,filename)
   
   ## Writing Parameters with Dimension "ntemp"
-  excel.parameters(Par_ntemp, filename)
+  write.parameter("tsta_elev",1,"ntemp",2,ntemp$tsta_elev,filename)
+  write.parameter("tsta_x",1,"ntemp",2,ntemp$tsta_x,filename)
+  write.parameter("tsta_y",1,"ntemp",2,ntemp$tsta_y,filename)
+  write.parameter("tsta_elev",1,"ntemp",2,ntemp$tsta_elev,filename)
+  write.parameter("tsta_nuse",1,"ntemp",1,ntemp$tsta_nuse,filename)
   
   ## Writing Parameters with Dimension "nmonths"
   excel.parameters(Par_nmonths, filename)
