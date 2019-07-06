@@ -237,7 +237,7 @@ excel.parameters <- function(tt, ff){
   }
 }
 
-Write_Parameters_Climate <- function(dfdata, dfstations, parameters_excel, filename){
+Write_Parameters_XYZDist <- function(dfdata, dfstations, parameters_excel, filename){
   
   # Calculating Parameters --------------------------------------------------------
   
@@ -260,7 +260,7 @@ Write_Parameters_Climate <- function(dfdata, dfstations, parameters_excel, filen
   psta_month_ppt <- MonthlyMeanValues(dfdata, "PRECIP")
   tsta_month_max <- MonthlyMeanValues(dfdata, "TMAX")
   tsta_month_min <- MonthlyMeanValues(dfdata, "TMIN")
-
+  
   ## Transformation Parameters for Dependent & Independent Variables
   IV <- IndependentVariables(dfdata, dfstations)
   DV <- DependentVariables(dfdata, dfstations)
