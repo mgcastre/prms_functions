@@ -46,7 +46,7 @@ CreateDate <- function(Data_Table) {
     mutate(Date = paste(Year,Month,Day,sep="-")) %>% 
     mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>% 
     mutate(Year = as.integer(Year), Month = as.integer(Month), Day = as.integer(Day)) %>% 
-    select(Date, everything()) 
+    dplyr::select(Date, everything()) 
 }
 
 SeparateDate <- function(Data_Table) {
@@ -80,7 +80,7 @@ MonthlyMeanValues <- function(df, sensor) {
     SeparateDate() %>% 
     group_by(Station, Month) %>%
     summarise(Value = mean(Value, na.rm = TRUE)) %>% 
-    select(Station, Month, Value) %>% 
+    dplyr::select(Station, Month, Value) %>% 
     arrange(Station, Month)
   return(Result)
 }
@@ -102,7 +102,7 @@ PlotMonthlyMeanValues <- function(df, sensor, title, y) {
 
 IndependentVariables <- function(dfdata, dfstations) {
   # Met Stations Coordinates
-  DataStations <- dfdata %>% select(Station) %>% distinct() %>% merge(dfstations)
+  DataStations <- dfdata %>% dplyr::select(Station) %>% distinct() %>% merge(dfstations)
   # Create Output Table
   IV <- list()
   # Mean 
@@ -139,6 +139,7 @@ DependentVariables <- function(dfdata, dfstations){
 Monthly_MLR <- function(Data1, Data2, SS){
   # Data1 is a table with daily values. It will be transformed to monthly values
   # Data2 is a table with the locations of the respectives observations (containing x,y,z coordinates)
+  # SS is the sensor to be calculated (PRECIP, TMAX, TMIN)
   
   # Independent Variable Calculation
   IV <- IndependentVariables(Data1, Data2)
@@ -159,7 +160,7 @@ Monthly_MLR <- function(Data1, Data2, SS){
   
   # Regression Coefficients Calculation
   TibbleTable <- merge(New_Var, Data2, by = "Station") %>% 
-    select(Month,Value,X,Y,Z) %>% 
+    dplyr::select(Month,Value,X,Y,Z) %>% 
     mutate(X = (X - IV$x_add)/IV$x_div,
            Y = (Y - IV$y_add)/IV$y_div,
            Z = (Z - IV$z_add)/IV$z_div) %>% 
@@ -172,6 +173,7 @@ Monthly_MLR <- function(Data1, Data2, SS){
   # Return Tibble
   return(TibbleTable)
 }
+
 # Plotting Functions ==================================================================================
 
 ggplotScatter <- function(TibbleTable) {
@@ -189,7 +191,7 @@ ggplotScatter <- function(TibbleTable) {
 
 ModelCoeffs <- function(TibbleTable) {
   Model_Coeffs <- TibbleTable %>% 
-    unnest(coeffs) %>% select(term,Month,estimate) %>% 
+    unnest(coeffs) %>% dplyr::select(term,Month,estimate) %>% 
     plyr::rename(c("term"="nlapse","Month"="nmonths","estimate"="parameter")) %>% 
     filter(nlapse != '(Intercept)') %>% arrange(nlapse, nmonths)
   return(Model_Coeffs)
