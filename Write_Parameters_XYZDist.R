@@ -259,15 +259,19 @@ Write_Parameters_XYZDist <- function(dfdata, dfstations, parameters_excel, filen
               tsta_nuse = as.integer(1))
   
   ## Mean Monthly Climate Parameters
+  print('Calculating Mean Monthly Climate Parameters...')
   psta_month_ppt <- MonthlyMeanValues(dfdata, "PRECIP")
   tsta_month_max <- MonthlyMeanValues(dfdata, "TMAX")
   tsta_month_min <- MonthlyMeanValues(dfdata, "TMIN")
   
   ## Transformation Parameters for Dependent & Independent Variables
+  print('Calculating Independent Variables...')
   IV <- IndependentVariables(dfdata, dfstations)
+  print('Calulcating Dependent Variables...')
   DV <- DependentVariables(dfdata, dfstations)
   
   ## Multiple Linear Regression Coefficients
+  print('Calculating Multiple Linear Regression Coefficients...')
   ### Precipitation
   model_precip <- Monthly_MLR(dfdata, dfstations, "PRECIP")
   ppt_lapse <- ModelCoeffs(model_precip)
@@ -283,6 +287,7 @@ Write_Parameters_XYZDist <- function(dfdata, dfstations, parameters_excel, filen
   Par_nmonths <- read_excel(parameters_excel, sheet = "nmonths", col_names = FALSE)
   
   # Writing Parameter File -----------------------------------------------------------
+  print("Writing Parameters to File...")
   
   ## Opening File
   cat("// PRMS Parameter File Part: XYZ Climate Distribution Module", file = filename, sep = "\n")
@@ -329,4 +334,6 @@ Write_Parameters_XYZDist <- function(dfdata, dfstations, parameters_excel, filen
   write.parameter("ppt_lapse",2,c("nlapse","nmonths"),2,ppt_lapse$parameter,filename)
   write.parameter("max_lapse",2,c("nlapse","nmonths"),2,max_lapse$parameter,filename)
   write.parameter("min_lapse",2,c("nlapse","nmonths"),2,min_lapse$parameter,filename)
+  
+  print("DONE")
 }
