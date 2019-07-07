@@ -336,5 +336,4 @@ Write_Parameters_XYZDist <- function(dfdata, dfstations, parameters_excel, filen
   write.parameter("max_lapse",2,c("nlapse","nmonths"),2,max_lapse$parameter,filename)
   write.parameter("min_lapse",2,c("nlapse","nmonths"),2,min_lapse$parameter,filename)
   
-  print("DONE")
 }
