@@ -201,7 +201,7 @@ ModelQuality <- function(TibbleTable) {
   Plot <- TibbleTable %>% 
     unnest(glance) %>% arrange(Month) %>% 
     ggplot() + geom_col(aes(Month, adj.r.squared), width = 0.5) + theme_light() +
-    scale_y_continuous(name = "Adj. R Squared", limits = c(0,1), breaks = seq(-1,1,0.2)) +
+    scale_y_continuous(name = "Adj. R Squared", limits = c(-1,1), breaks = seq(-1,1,0.2)) +
     scale_x_discrete(name = "Months", limits = seq(1,12,1)) +
     ggtitle("Monthly Adjusted R.Sqaured")
   return(Plot)
@@ -283,6 +283,7 @@ Write_Parameters_XYZDist <- function(dfdata, dfstations, parameters_excel, filen
   min_lapse <- ModelCoeffs(model_tmin)
   
   ## Read Other Required Parameters from Excel
+  print("Reading Excel Parameters")
   Par_one <- read_excel(parameters_excel, sheet = "one", col_names = FALSE)
   Par_nmonths <- read_excel(parameters_excel, sheet = "nmonths", col_names = FALSE)
   
