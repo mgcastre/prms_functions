@@ -1,0 +1,69 @@
+---
+title: "Testing Functions"
+---
+
+# Loading Data
+```{r}
+# Reading File for Station Location
+dir_path <- '../../../Datos/Hidrometeorologia (ETESA)/Estaciones ETESA.xlsx'
+MetStations <- read_excel(path = dir_path, sheet = 2) %>% 
+  mutate(Station = as.factor(Station), X = Este, Y = Norte, Z = Elevation)
+
+# Loading Met Data
+file_list <- list.files(path = "./data", full.names = TRUE)
+AllData <- do.call(rbind,lapply(file_list,read.csv)) %>% 
+  select(Date, Station, Sensor, Value, Unit) %>% 
+  mutate(Date = as.Date(Date), Station = as.factor(Station))
+
+# Clean Data
+DF_Data <- AllData %>% 
+  mutate(Sensor = as.character(Sensor),
+         Sensor = replace(Sensor, which(Sensor == "LLUVIA"), "PRECIP"),
+         Sensor = replace(Sensor, which(Sensor == "CAUDAL"), "FLOW"),
+         Value = ifelse(Sensor == "PRECIP", Value/(10*2.54), Value),
+         Value = ifelse(Sensor == "FLOW", Value*35.31467, Value)) %>% 
+  select(Date, Station, Sensor, Value)
+
+DF_Stations <- MetStations %>% select(Station, X, Y, Z)
+```
+
+# Writing Files
+```{r, message=FALSE, warning=FALSE}
+# Data File
+source("functions/Write_DataFile.R")
+Write_DataFile(DF_Data, "test.data", "1965-01-01", "2017-12-31")
+
+# Parameter File: Climate
+source("functions/Write_Parameters_Climate.R")
+Write_Parameters_Climate(DF_Data, DF_Stations, "input/Parameters (Climate).xlsx", "test2.params")
+
+# Parameter File: HRUs
+source("functions/Write_Parameters_HRUs.R")
+Write_Parameters_HRUs("input/Parameters (47 HRUs).xlsx", "test3.params")
+```
+
+# Output Maps
+```{r}
+# Loading Functions
+source("functions/Read_Statvar.R")
+source("functions/View_Output.R")
+
+# Loading Polygon File
+watershed <- readOGR(dsn = "shapefiles/HRUs_LaVillaPlus_47.shp", verbose = FALSE)
+
+# Loading Statvar
+vars <- read.statvar("output/LaVilla_statvar.dat")
+
+# Variables to Plot
+NewVars <- MonthlyTotalAverage(vars) 
+ppt <- select.outputvar(NewVars, "hru_ppt")
+
+# Plotting
+PlotMap(shp = watershed,
+        df = ppt,
+        variable = "hru_ppt", 
+        title = "Precipitation", 
+        plt = "Blues",
+        u = "(mm/month)")
+```
+
